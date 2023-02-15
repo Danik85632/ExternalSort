@@ -92,7 +92,7 @@ public class ExternalSort {
         } finally {
             fbr.close();
         }
-        return mergeSortedFiles(files);
+        return mergeSortedFiles(cmp, files);
     }
 
     public static File sortAndSave(List<String> tmplist,
@@ -125,9 +125,9 @@ public class ExternalSort {
         return newtmpfile;
     }
 
-    private static long mergeSortedFiles(List<File> files)
+    private static long mergeSortedFiles(final Comparator<String> cmp, List<File> files)
         throws IOException {
-        return mergeSortedFiles(files, defaultcomparator, Charset.defaultCharset());
+        return mergeSortedFiles(files, cmp, Charset.defaultCharset());
     }
 
     private static long mergeSortedFiles(List<File> files,
@@ -143,14 +143,14 @@ public class ExternalSort {
             BinaryFileBuffer bfb = new BinaryFileBuffer(br);
             bfbs.add(bfb);
         }
-        long rowcounter = mergeSortedFiles(cmp, bfbs);
+        long rowcounter = mergeSortedFiles(bfbs, cmp);
         for (File f : files) {
             f.delete();
         }
         return rowcounter;
     }
 
-    private static long mergeSortedFiles(final Comparator<String> cmp, List<IOStringStack> buffers) throws IOException {
+    private static long mergeSortedFiles(List<IOStringStack> buffers, final Comparator<String> cmp) throws IOException {
         PriorityQueue<IOStringStack> pq = new PriorityQueue<>(11,
             (i, j) -> cmp.compare(i.peek(), j.peek()));
         for (IOStringStack bfb : buffers) {
